@@ -1,4 +1,4 @@
-import { getRepository } from "typeorm";
+
 import { TodoListEntity } from "./entities/todo-list.entity";
 import { AppDataSource } from "./db";
 import { TodoEntity } from "./entities/todo.entity";
@@ -23,17 +23,27 @@ export const resolvers = {
             throw new Error('Не удалось получить списки.');
         }
     },
-    createList: async ({ input }: { input: Partial<TodoListEntity> & { todos: Partial<TodoEntity>[] } }) => {
+    createList: async ({ input }: { input: Partial<TodoListEntity> }) => {
         try {
+
             const list = listRepository.create({ title: input.title });
-            if (Array.isArray(input.todos) && input.todos.length > 0) {
-                list.todos = input.todos.map(todoInput => {
-                    const todo = todoRepository.create(todoInput);
-                    todo.list = list;
-                    return todo;
-                });
-            }
+
             const savedList = await listRepository.save(list);
+
+            if (Array.isArray(input.todos) && input.todos.length > 0) {
+
+                const savedTodos = await Promise.all(input.todos.map(async todoInput => {
+                    const todo = todoRepository.create({
+                        ...todoInput,
+                        list: savedList
+                    });
+
+                    return await todoRepository.save(todo);
+                }));
+
+                savedList.todos = savedTodos;
+            }
+
             return savedList;
         } catch (error) {
             console.error('Ошибка при создании списка:', error);
@@ -59,7 +69,9 @@ export const resolvers = {
                 await Promise.all(list.todos.map(async (todo) => await todoRepository.delete(todo.id)));
             }
             await listRepository.delete(id);
+
             return id;
+            
         } catch (error) {
             console.error('Ошибка при удалении списка:', error);
             throw new Error('Не удалось удалить список.');
@@ -92,7 +104,11 @@ export const resolvers = {
                 list: findedList
             });
             await todoRepository.save(newTodo);
-            return { ...newTodo, listId };
+            return {
+                ...newTodo,
+                listId
+            };
+            
         } catch (error) {
             console.error('Ошибка при создании задачи:', error);
             throw new Error('Не удалось создать задачу.');

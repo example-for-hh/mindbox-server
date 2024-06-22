@@ -15,13 +15,6 @@ const schema = buildSchema(`
         todos: [Todo]!
     }
 
-    type TodoResponse {
-        id: ID!,
-        title: String!,
-        checked: Boolean!,
-        listId: ID!
-    }
-
     type Query {
         list(id: ID!): List!,
         lists: [List]
@@ -46,8 +39,8 @@ const schema = buildSchema(`
         deleteList(id: ID!): ID
 
         createTodo(input: TodoInput!, listId: ID!): Todo
-        updateTodo(id: ID!, listId: ID!): TodoResponse
-        deleteTodo(id: ID!, listId: ID!): TodoResponse
+        updateTodo(id: ID!, listId: ID!): Todo
+        deleteTodo(id: ID!, listId: ID!): Todo
     }
 `);
 

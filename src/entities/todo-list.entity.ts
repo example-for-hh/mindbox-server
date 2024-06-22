@@ -9,6 +9,6 @@ export class TodoListEntity {
   @Column()
   title!: string;
 
-  @OneToMany(() => TodoEntity, (todo: TodoEntity) => todo.list, { cascade: true })
+  @OneToMany(() => TodoEntity, (todo: TodoEntity) => todo.list)
   todos?: TodoEntity[];
 }
